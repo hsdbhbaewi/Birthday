@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Happy Birthday Maalkinnnn! 💕</title>
+    
+    <!-- Libraries -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Plus+Jakarta+Sans:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --bg-dark: #0c0a09;
+            --primary-pink: hsla(333, 70%, 55%, 1);
+            --primary-red: hsla(0, 89%, 60%, 1);
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: var(--bg-dark);
+            font-family: 'Plus Jakarta Sans', sans-serif; /* Close modern alternative to Satoshi */
+            color: #f5f5f5;
+        }
+
+        h1, h2 { font-family: 'Playfair Display', serif; }
+
+        /* Layer 1: Animated Aurora */
+        #aurora-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -2;
+            filter: blur(100px);
+            opacity: 0.6;
+        }
+
+        .aurora-blob {
+            position: absolute;
+            width: 60vw; height: 60vw;
+            border-radius: 50%;
+            mix-blend-mode: screen;
+            animation: breathe 15s infinite alternate ease-in-out;
+        }
+
+        @keyframes breathe {
+            0% { transform: translate(-10%, -10%) scale(1); opacity: 0.3; }
+            100% { transform: translate(10%, 10%) scale(1.2); opacity: 0.5; }
+        }
+
+        /* Layer 2: Three.js Container */
+        #canvas-container {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* Glassmorphism Styles */
+        .glass-card {
+            background: rgba(15, 12, 11, 0.4);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 32px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            padding: 2.5rem;
+            width: 90%;
+            max-width: 500px;
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            display: none;
+            z-index: 10;
+        }
+
+        .active-card { display: block; }
+
+        .text-gradient {
+            background: linear-gradient(to right, #ffffff, #ffb3d1, #ffffff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Progress Bar */
+        .progress-track {
+            position: fixed;
+            top: 30px; left: 50%; transform: translateX(-50%);
+            width: 200px; height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            z-index: 100;
+        }
+
+        .progress-fill {
+            height: 100%; width: 20%;
+            background: linear-gradient(to right, var(--primary-pink), var(--primary-red));
+            border-radius: 10px;
+            transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        /* Buttons */
+        .pill-button {
+            background: linear-gradient(45deg, #ff4d94, #ff1a1a);
+            padding: 14px 32px;
+            border-radius: 9999px;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 0 20px rgba(255, 77, 148, 0.4);
+            display: inline-block;
+            cursor: pointer;
+            border: none;
+            color: white;
+        }
+
+        .pill-button:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 0 35px rgba(255, 77, 148, 0.7);
+        }
+
+        .pill-button:active { transform: translateY(1px); }
+
+        /* Bento Grid */
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin: 20px 0;
+        }
+        .bento-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 16px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .bento-large { grid-column: span 2; }
+
+        /* Polaroid */
+        .polaroid-wrapper { perspective: 1000px; margin: 20px 0; }
+        .polaroid {
+            background: white;
+            padding: 12px 12px 40px 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            transform: rotate(-3deg);
+            width: 230px;
+            margin: 0 auto;
+            transition: transform 0.1s ease-out;
+        }
+        .polaroid img { width: 100%; height: 200px; object-fit: cover; }
+        .polaroid-caption {
+            color: #333; font-family: 'Playfair Display', serif;
+            font-size: 0.7rem; margin-top: 15px;
+            text-align: center; font-weight: bold; line-height: 1.2;
+        }
+
+        .heart-beat {
+            animation: beat 1.5s infinite;
+            display: inline-block;
+            filter: drop-shadow(0 0 10px var(--primary-pink));
+        }
+        @keyframes beat {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+    </style>
+</head>
+<body>
+
+    <div id="aurora-bg">
+        <div class="aurora-blob" style="background: hsla(333,70%,55%,.4); top: -10%; left: -10%;"></div>
+        <div class="aurora-blob" style="background: hsla(282, 82%, 54%, .3); bottom: -10%; right: -10%; animation-delay: -5s;"></div>
+        <div class="aurora-blob" style="background: hsla(210, 89%, 60%, .3); top: 30%; left: 20%; animation-delay: -10s;"></div>
+        <div class="aurora-blob" style="background: hsla(35, 90%, 60%, .3); bottom: 10%; left: 5%; animation-delay: -15s;"></div>
+    </div>
+
+    <div id="canvas-container"></div>
+
+    <div class="progress-track">
+        <div class="progress-fill" id="progress-bar"></div>
+    </div>
+
+    <!-- Step 1 -->
+    <div class="glass-card active-card" id="step-1">
+        <div class="text-center">
+            <div class="text-6xl mb-6 heart-beat">❤️</div>
+            <h1 class="text-4xl mb-4 text-gradient">Areee ooo Maalkinnnn 💕,</h1>
+            <p class="text-gray-300 leading-relaxed mb-8">
+                Dekhooo frsee apne sade gale efforts lekar aagya mm waapis taakiii जन्मदिन koo meree कारण ek baar tohhh smilee karoo (karo ohh btana mat bhulna pta toh chlee ye garib apne Maksaddd m kaamyaab hua bhi ya nhii) .
+            </p>
+            <button class="pill-button" onclick="goToStep(2)">Let's Begin</button>
+        </div>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="glass-card" id="step-2">
+        <div class="text-center">
+            <div class="text-5xl mb-4">🎉</div>
+            <h2 class="text-3xl mb-4 text-gradient">Happyyyyy Birthdayyyy Missss Chuhiyaaa 🐭!</h2>
+            <div class="text-gray-300 text-sm leading-relaxed mb-8 h-48 overflow-y-auto px-2 custom-scrollbar text-left">
+                withhh Due Respect Miss chuhiyaa urff Maalkinn (sirf mujhh gareeb ko dbatii 😭 lekin mujhe accha bhi lgtaa) want to sayy ki sirff m bhondu nhi huu tu mersee bdii bhondu hai (lekinn tumhee pta nhi h abhii kyukiii ye ek bimaarii hai jo tym k saath badhtiii) orr yhii chhataa huu kii tuu iss bimaarii k saath 100-200 saal or jiyee orr meraa jeena haraam krdeee apnin chakuuu ghupp dungiii 🔪 wali dhamkiyaa dekeee!! Ujhee nhi ptaa m kya bakwaas kre jaraa lekinn itna pta hh i love yourr companyy orr mm isse bilkull bhii nhi khona chahungaaa!! Tuu bdiii acchi h lekinn usse se bhi bdii pagall hai orr yhiii chiz mujhe acchi lgtiiih teriii!!! Be as you aree !!! Dontt wanna loose youuu !! Meriii chuhiyaaa 🫶🏻!!! At lasttt Happppyyyy Birthdayyyyy Chuhiyaaaa Mayyy Bhagwaan blesss Youuu wiithhh Brainn (jo galat jagha par hai (ghutnon Meeee))And loveee!!! Mayy Youu getting whattt Youu wanttt (butt in my opinion You deserves The bestttt) Uncleee 🥸 ki duaa tumhare saath haiiii hameshaaa !! Pgl mttt hoojana pdhkeee (phle hi ho mere jaisii ) ❤️ .
+            </div>
+            <button class="pill-button" onclick="goToStep(3)">There's more...</button>
+        </div>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="glass-card" id="step-3">
+        <h2 class="text-2xl text-center mb-6 text-gradient">A Few Things I Adore About You</h2>
+        <div class="bento-grid">
+            <div class="bento-item bento-large">
+                <h3 class="text-pink-400 font-bold mb-1">✨ Your Kindness</h3>
+                <p class="text-xs text-gray-400">Jaanwarooo kk liyeee hdd se zyada acchi hoo (jaisi ki mere liyee) Billa hu na mm 🐱.</p>
+            </div>
+            <div class="bento-item">
+                <h3 class="text-pink-400 font-bold mb-1">😊 Ankheeee</h3>
+                <p class="text-xs text-gray-400">Pyariii lekinn mujhee drr lgtaa 😭</p>
+            </div>
+            <div class="bento-item bento-large">
+                <h3 class="text-pink-400 font-bold mb-1">Defectedd Piece</h3>
+                <p class="text-xs text-gray-400">made By Goddd 😭 Mosttt Importanttt...... CHHUHIYAAA SII 😭.</p>
+            </div>
+        </div>
+        <div class="text-center mt-4">
+            <button class="pill-button" onclick="goToStep(4)">Remember this?</button>
+        </div>
+    </div>
+
+    <!-- Step 4 -->
+    <div class="glass-card" id="step-4">
+        <div class="text-center">
+            <h2 class="text-3xl mb-4 text-gradient">That One Time...</h2>
+            <div class="polaroid-wrapper">
+                <div class="polaroid" id="photo-card">
+                    <!-- Local Path as requested, adding placeholder fallback -->
+                    <img src="file:///Users/siddharth/Downloads/IMG_2411.jpg" alt="Memory" onerror="this.src='https://images.unsplash.com/photo-1518199266791-5375a83190b7?auto=format&fit=crop&q=80&w=400'">
+                    <p class="polaroid-caption">Teriii Meriii Favouriteee Photooo (aaj tak bhejii hi ek ye hai 😭)</p>
+                </div>
+            </div>
+            <p class="text-gray-300 text-sm italic mb-8 px-4">
+                Aisiii Harkateee krtiii hh tbb bdii pyarii lgtiii hhh krtiii rhaaa krrrr 😭 Or ek aadhe photo dhang k bhii bhej diya kro kbhiii 😭🔪.
+            </p>
+            <button class="pill-button" onclick="goToStep(5)">One last thing...</button>
+        </div>
+    </div>
+
+    <!-- Step 5 -->
+    <div class="glass-card" id="step-5">
+        <div class="text-center">
+            <div class="text-6xl mb-6">🎂</div>
+            <h2 class="text-3xl mb-4 text-gradient">At THE ENDDD</h2>
+            <p class="text-gray-300 leading-relaxed mb-8">
+                AAkhirr m thii khungaa kii YOU ARE THE BESTT Gurlll I Had ever met in may whole 19 saal ka jeevannnn Sooo Alwayss Be Happyyy !! Orrr Ignoree bahutt krtii hhh (justt canttt Proveee It) AAdatt sudhaar leeeeeeeee chuhiyaaaa 🫶🏻.
+            </p>
+            <div id="final-message" class="text-2xl font-bold text-pink-400 mb-8 opacity-0 hidden">Happyyy Birthdayyy, Maalkinnnnn ! ❤️</div>
+            <button class="pill-button" id="celebrate-btn" onclick="startFinale()">Celebrate!</button>
+        </div>
+    </div>
+
+    <script>
+        let currentStepNum = 1;
+        let scene, camera, renderer, hearts = [];
+        let finaleActive = false;
+
+        function goToStep(step) {
+            const outEl = document.getElementById(`step-${currentStepNum}`);
+            const inEl = document.getElementById(`step-${step}`);
+            
+            gsap.to(outEl, { opacity: 0, y: -30, scale: 0.9, duration: 0.6, onComplete: () => {
+                outEl.classList.remove('active-card');
+                inEl.classList.add('active-card');
+                gsap.fromTo(inEl, { opacity: 0, y: 30, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.6 });
+                
+                const items = inEl.querySelectorAll('.text-center > *, .bento-grid > *, .pill-button');
+                gsap.fromTo(items, { opacity: 0, y: 20 }, { opacity: 1, y: 0, stagger: 0.1, duration: 0.4, delay: 0.2 });
+            }});
+            
+            currentStepNum = step;
+            document.getElementById('progress-bar').style.width = (step / 5) * 100 + '%';
+        }
+
+        const photo = document.getElementById('photo-card');
+        document.addEventListener('mousemove', (e) => {
+            if (currentStepNum !== 4) return;
+            const x = (window.innerWidth / 2 - e.pageX) / 20;
+            const y = (window.innerHeight / 2 - e.pageY) / 20;
+            photo.style.transform = `rotateY(${x}deg) rotateX(${y}deg) rotate(-3deg)`;
+        });
+
+        function initThree() {
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            const heartShape = new THREE.Shape();
+            heartShape.moveTo(0, 0);
+            heartShape.bezierCurveTo(0, 0.5, 0.5, 1, 1, 1);
+            heartShape.bezierCurveTo(1.5, 1, 2, 0.5, 2, 0);
+            heartShape.bezierCurveTo(2, -0.5, 1.5, -1, 1, -1.5);
+            heartShape.bezierCurveTo(0.5, -1, 0, -0.5, 0, 0);
+
+            const geometry = new THREE.ShapeGeometry(heartShape);
+            for(let i=0; i<25; i++) {
+                const material = new THREE.MeshPhongMaterial({ 
+                    color: i % 2 === 0 ? 0xff4d94 : 0xff1a1a,
+                    shininess: 100, transparent: true, opacity: 0.6
+                });
+                const mesh = new THREE.Mesh(geometry, material);
+                resetHeart(mesh);
+                scene.add(mesh);
+                hearts.push(mesh);
+            }
+
+            const light = new THREE.PointLight(0xffffff, 1, 100);
+            light.position.set(0, 10, 10);
+            scene.add(light);
+            scene.add(new THREE.AmbientLight(0x404040));
+            camera.position.z = 10;
+            animate();
+        }
+
+        function resetHeart(mesh) {
+            mesh.position.set((Math.random()-0.5)*20, (Math.random()-0.5)*20, (Math.random()-5));
+            mesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.PI);
+            mesh.scale.set(0.18, 0.18, 0.18);
+            mesh.userData = { speed: 0.005 + Math.random()*0.01, sine: Math.random()*10 };
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            hearts.forEach(mesh => {
+                if (!finaleActive) {
+                    mesh.position.y += mesh.userData.speed;
+                    mesh.position.x += Math.sin(Date.now() * 0.001 + mesh.userData.sine) * 0.005;
+                    mesh.rotation.y += 0.01;
+                    if (mesh.position.y > 10) mesh.position.y = -10;
+                } else {
+                    mesh.position.y += 0.2;
+                    mesh.position.x += (mesh.position.x > 0 ? 0.1 : -0.1);
+                    mesh.material.opacity -= 0.005;
+                }
+            });
+            renderer.render(scene, camera);
+        }
+
+        function startFinale() {
+            finaleActive = true;
+            const btn = document.getElementById('celebrate-btn');
+            const wish = document.getElementById('final-message');
+            gsap.to(btn, { opacity: 0, scale: 0.5, duration: 0.5, onComplete: () => btn.style.display = 'none' });
+            wish.classList.remove('hidden');
+            gsap.to(wish, { opacity: 1, y: -20, duration: 1.5, delay: 0.5 });
+
+            const duration = 5 * 1000;
+            const end = Date.now() + duration;
+            (function frame() {
+                confetti({ particleCount: 5, angle: 60, spread: 55, origin: { x: 0, y: 0.8 }, colors: ['#ff4d94', '#ff1a1a', '#ffffff'] });
+                confetti({ particleCount: 5, angle: 120, spread: 55, origin: { x: 1, y: 0.8 }, colors: ['#ff4d94', '#ff1a1a', '#ffffff'] });
+                if (Date.now() < end) requestAnimationFrame(frame);
+            }());
+
+            confetti({ particleCount: 40, spread: 70, origin: { y: 0.6 }, emoji: ['❤️', '💖', '✨'], scalar: 2 });
+        }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        window.onload = initThree;
+    </script>
+</body>
+</html>
